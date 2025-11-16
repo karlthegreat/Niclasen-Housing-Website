@@ -2137,7 +2137,7 @@ vertical-align: -.125em;
 
 <body class="quarto-light">
 
-  <div id="login-overlay" style="
+<div id="login-overlay" style="
   position: fixed;
   top: 0;
   left: 0;
@@ -2205,26 +2205,32 @@ vertical-align: -.125em;
 </div>
 
 <script>
-// CHANGE THIS PASSWORD TO YOUR OWN
-const CORRECT_PASSWORD = "changeme123";
+const CORRECT_PASSWORD_HASH = "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08";
 
-function checkPassword() {
+async function hashPassword(password) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function checkPassword() {
   const input = document.getElementById('password-input').value;
   const errorMsg = document.getElementById('error-message');
   
-  if (input === CORRECT_PASSWORD) {
-    // Correct password - hide login overlay
+  const inputHash = await hashPassword(input);
+  
+  if (inputHash === CORRECT_PASSWORD_HASH) {
     document.getElementById('login-overlay').style.display = 'none';
     errorMsg.style.display = 'none';
   } else {
-    // Wrong password - show error
     errorMsg.style.display = 'block';
     document.getElementById('password-input').value = '';
     document.getElementById('password-input').focus();
   }
 }
 
-// Focus on password input when page loads
 window.addEventListener('load', function() {
   document.getElementById('password-input').focus();
 });
